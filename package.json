@@ -23,6 +23,7 @@
   "scripts": {
     "start": "webpack --config ./build/webpack.config.js && npm run serve",
     "serve": "webpack-dev-server --mode development --config ./build/webpack.config.js",
-    "build": "webpack --config ./build/webpack.config.js"
+    "build": "webpack --config ./build/webpack.config.js",
+    "deploy": "npm run build && aws s3 sync ./dist s3://graphs-website"
   }
 }
