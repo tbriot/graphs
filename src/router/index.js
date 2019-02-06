@@ -11,7 +11,7 @@ export function createRouter () {
     routes: [
       { path: '/home', component: Home },
       { path: '/user/profile', component: UserProfile },
-      { path: '/stock/:ticker/chart', component: Chart, props: true },
+      { path: '/stock/:ticker/chart/', name: 'chart', component: Chart, props: true },
       { path: '/', redirect: '/home' },
       { path: '*', redirect: '/home' }
     ]

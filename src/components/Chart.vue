@@ -47,7 +47,7 @@ export default {
         var ctx = this.$refs.canvas.getContext('2d')
 
         var priceDs = {
-            label: 'AAPL stock price',
+            label: this.ticker + ' stock price',
             data: [],
             borderColor: 'black',
             fill: false,
@@ -89,23 +89,26 @@ export default {
     },
     refresh_historical_stock_prices: function () {
         console.log("Fetching stock prices. HTTP GET request")
-        let apiName = 'MyAPIGatewayAPI';
-        let path = '/test/historical/stock/AAPL'; 
+        let apiName = 'MyAPIGatewayAPI_new'
+        let path = '/test/historical/stock/' + this.ticker  
         let myInit = { // OPTIONAL
             headers: {}, // OPTIONAL
             response: true, // OPTIONAL (return the entire Axios response object instead of only response.data)
+            /*
             queryStringParameters: {  // OPTIONAL
                 name: 'param'
             }
+            */
         }
 
         API.get(apiName, path, myInit)
         .then(response => {
-            this.replace_stock_price_data(response.data.stock_price)
-            console.log("Historical stock prices refreshed")
-            this.replace_pe_data(response.data.stock_earnings, 15)
+            console.log('API call response:' + JSON.stringify(response))
+            // this.replace_stock_price_data(response.data.stock_price)
+            //console.log("Historical stock prices refreshed")
+            this.replace_pe_data(response.data.results, 15)
             console.log("Historical pe refreshed")})
-        .catch(error => {console.log(error.response)})
+        .catch(error => {console.log('error' + error)})
     },
     replace_stock_price_data: function(new_datapoints) {
         var chart_price_ds = this.chart.data.datasets[0]
@@ -122,7 +125,7 @@ export default {
         chart_price_ds.data=[]
         new_datapoints.forEach((dp) => {
             chart_price_ds.data.push(
-                {x: new Date(dp.date), y: dp.earnings * multiple}
+                {x: new Date(dp.dt), y: dp.e * multiple}
             )
         })
         this.chart.update()
