@@ -27,23 +27,31 @@ export default {
        }
   },
   created: function() {
+      console.log('CREATED - chart:' + this.chart)
       this.$store.dispatch('refreshLoggedInState')
   },
   mounted: function() {
     if (this.isLoggedIn) {
+        console.log('is logged in')
         this.initChart('chart')
-        this.refresh_historical_stock_prices()
+        this.update_historical_stock_earnings()
+        this.update_historical_stock_price()
     }
+    console.log('MOUNTED- chart:' + this.chart)
   },
   updated: function() {
+    console.log('UPDATED- chart:' + this.chart)
     if (this.isLoggedIn) {
-        this.initChart('chart')
-        this.refresh_historical_stock_prices()
+        if (!this.chart) {
+            console.log('re init chart !!')
+            this.initChart('chart')           
+        }
+        this.update_historical_stock_earnings()
+        this.update_historical_stock_price()
     }
   },
   methods: {
     initChart: function(chartDiv) {
-        console.log('init chart')
         var ctx = this.$refs.canvas.getContext('2d')
 
         var priceDs = {
@@ -85,47 +93,64 @@ export default {
                 }
             }
         })
-        console.log('init chart - end')  
-    },
-    refresh_historical_stock_prices: function () {
-        console.log("Fetching stock prices. HTTP GET request")
-        let apiName = 'MyAPIGatewayAPI_new'
-        let path = '/test/historical/stock/' + this.ticker  
-        let myInit = { // OPTIONAL
-            headers: {}, // OPTIONAL
-            response: true, // OPTIONAL (return the entire Axios response object instead of only response.data)
-            /*
-            queryStringParameters: {  // OPTIONAL
-                name: 'param'
-            }
-            */
-        }
 
+    },
+    update_historical_stock_earnings: function () {
+        console.log("API call to fetch stock earnings.")
+        let apiName = 'StockAPI'
+        let path = `/test/historical/stock/${this.ticker}`
+        let myInit = {
+            headers: {},
+            response: true,
+            queryStringParameters: {
+                from: '2007-01-01',
+                to: '2020-01-01'
+            }
+         }
         API.get(apiName, path, myInit)
         .then(response => {
-            console.log('API call response:' + JSON.stringify(response))
-            // this.replace_stock_price_data(response.data.stock_price)
-            //console.log("Historical stock prices refreshed")
-            this.replace_pe_data(response.data.results, 15)
-            console.log("Historical pe refreshed")})
+            //console.log('API call response:' + JSON.stringify(response))
+            this.display_earning(response.data.results, 15)
+            //console.log("Earnings data refreshed")
+            })
         .catch(error => {console.log('error' + error)})
     },
-    replace_stock_price_data: function(new_datapoints) {
-        var chart_price_ds = this.chart.data.datasets[0]
-        chart_price_ds.data=[]
+    update_historical_stock_price: function () {
+        console.log("API call to fetch stock prices.")
+        let apiName = 'StockAPI'
+        let path = `/test/historical/stock/${this.ticker}/closing-price`
+        let myInit = {
+            headers: {},
+            response: true,
+            queryStringParameters: {
+                from: '2007-01-01',
+                to: '2020-01-01'
+            }
+        }
+        API.get(apiName, path, myInit)
+        .then(response => {
+            //console.log('API call response:' + JSON.stringify(response))
+            this.display_price(response.data.results)
+            //console.log("Prices data refreshed")
+            })
+        .catch(error => {console.log('error' + error)})
+    },
+    display_earning: function (new_datapoints, multiple) {
+        var chart_earnings_ds = this.chart.data.datasets[1]
+        chart_earnings_ds.data=[]
         new_datapoints.forEach((dp) => {
-            chart_price_ds.data.push(
-                {x: new Date(dp.date), y: dp.price}
+            chart_earnings_ds.data.push(
+                {x: new Date(dp.dt), y: dp.e * multiple}
             )
         })
         this.chart.update()
     },
-    replace_pe_data: function (new_datapoints, multiple) {
-        var chart_price_ds = this.chart.data.datasets[1]
+    display_price: function(new_datapoints) {
+        var chart_price_ds = this.chart.data.datasets[0]
         chart_price_ds.data=[]
         new_datapoints.forEach((dp) => {
             chart_price_ds.data.push(
-                {x: new Date(dp.dt), y: dp.e * multiple}
+                {x: new Date(dp.dt), y: dp.p}
             )
         })
         this.chart.update()

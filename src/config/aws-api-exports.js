@@ -1,13 +1,7 @@
 const aws_api_config =  {
     endpoints: [
         {
-            name: "MyAPIGatewayAPI",
-            endpoint: "https://nifhfdfnti.execute-api.ca-central-1.amazonaws.com",
-            region: "ca-central-1",
-            service: "execute-api"
-        },
-        {
-            name: "MyAPIGatewayAPI_new",
+            name: "StockAPI",
             endpoint: "https://tva4ps7we8.execute-api.ca-central-1.amazonaws.com",
             region: "ca-central-1",
             service: "execute-api"
