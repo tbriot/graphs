@@ -27,25 +27,26 @@ export default {
        }
   },
   created: function() {
-      console.log('CREATED - chart:' + this.chart)
-      this.$store.dispatch('refreshLoggedInState')
+    console.debug('CREATED')
   },
   mounted: function() {
+    console.debug('MOUNTED - start')
     if (this.isLoggedIn) {
-        console.log('is logged in')
+        console.debug('MOUNTED - isLoggedIn')
         this.initChart('chart')
         this.update_historical_stock_earnings()
         this.update_historical_stock_price()
     }
-    console.log('MOUNTED- chart:' + this.chart)
   },
   updated: function() {
-    console.log('UPDATED- chart:' + this.chart)
+    console.debug('UPDATED- start')
     if (this.isLoggedIn) {
-        if (!this.chart) {
-            console.log('re init chart !!')
-            this.initChart('chart')           
+        console.debug('UPDATED - isLoggedIn')
+        if (this.chart) {            
+            this.chart.destroy()
+            console.debug('UPDATED - destroyed previous chart')
         }
+        this.initChart('chart')        
         this.update_historical_stock_earnings()
         this.update_historical_stock_price()
     }
@@ -79,6 +80,7 @@ export default {
                 datasets: [priceDs, price15PeDs]
             },
             options: {
+                animation: { duration: 0 },
                 responsive: true,
                 maintainAspectRatio: true,
                 scales: {
@@ -96,7 +98,7 @@ export default {
 
     },
     update_historical_stock_earnings: function () {
-        console.log("API call to fetch stock earnings.")
+        console.debug("API call to fetch stock earnings.")
         let apiName = 'StockAPI'
         let path = `/test/historical/stock/${this.ticker}`
         let myInit = {
@@ -109,14 +111,14 @@ export default {
          }
         API.get(apiName, path, myInit)
         .then(response => {
-            //console.log('API call response:' + JSON.stringify(response))
+            //console.debug('API call response:' + JSON.stringify(response))
             this.display_earning(response.data.results, 15)
-            //console.log("Earnings data refreshed")
+            //console.debug("Earnings data refreshed")
             })
-        .catch(error => {console.log('error' + error)})
+        .catch(error => {console.debug('error' + error)})
     },
     update_historical_stock_price: function () {
-        console.log("API call to fetch stock prices.")
+        console.debug("API call to fetch stock prices.")
         let apiName = 'StockAPI'
         let path = `/test/historical/stock/${this.ticker}/closing-price`
         let myInit = {
@@ -129,11 +131,11 @@ export default {
         }
         API.get(apiName, path, myInit)
         .then(response => {
-            //console.log('API call response:' + JSON.stringify(response))
+            //console.debug('API call response:' + JSON.stringify(response))
             this.display_price(response.data.results)
-            //console.log("Prices data refreshed")
+            //console.debug("Prices data refreshed")
             })
-        .catch(error => {console.log('error' + error)})
+        .catch(error => {console.debug('error' + error)})
     },
     display_earning: function (new_datapoints, multiple) {
         var chart_earnings_ds = this.chart.data.datasets[1]
@@ -143,7 +145,7 @@ export default {
                 {x: new Date(dp.dt), y: dp.e * multiple}
             )
         })
-        this.chart.update()
+        this.chart.update()      
     },
     display_price: function(new_datapoints) {
         var chart_price_ds = this.chart.data.datasets[0]

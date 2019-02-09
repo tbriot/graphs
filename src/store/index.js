@@ -23,6 +23,7 @@ export default new Vuex.Store({
     mutations: {
         setLoggedIn: function (state, bool) {
             state.loggedIn = bool
+            console.log('loggedIn set to ' + bool)
         },
         setUser: function (state, user) {
             state.user.username = user.username
@@ -31,7 +32,6 @@ export default new Vuex.Store({
     },
     actions: {
         refreshLoggedInState: function (context) {
-            console.log('refreshLoggedInState' + Auth)
             Auth.currentAuthenticatedUser({bypassCache: false})
             .then(user => {
                 console.log(user)
