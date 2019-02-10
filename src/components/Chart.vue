@@ -83,9 +83,14 @@ export default {
                 animation: { duration: 0 },
                 responsive: true,
                 maintainAspectRatio: true,
+                scaleOverride : true,
+
                 scales: {
                     xAxes: [{
-                        type: 'time'
+                        type: 'time',
+                        time: {
+                            min: "2009-01-01"
+                         }
                     }]
                 },
                 elements: {
