@@ -110,8 +110,7 @@ export default {
             headers: {},
             response: true,
             queryStringParameters: {
-                from: '2007-01-01',
-                to: '2020-01-01'
+                from: '2007-01-01'
             }
          }
         API.get(apiName, path, myInit)
@@ -130,8 +129,7 @@ export default {
             headers: {},
             response: true,
             queryStringParameters: {
-                from: '2007-01-01',
-                to: '2020-01-01'
+                from: '2007-01-01'
             }
         }
         API.get(apiName, path, myInit)
