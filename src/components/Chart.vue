@@ -57,6 +57,7 @@ export default {
 
         var priceDs = {
             label: this.ticker + ' stock price',
+            xAxisID: 'PriceXAxis',
             data: [],
             borderColor: 'black',
             fill: false,
@@ -66,6 +67,7 @@ export default {
 
         var price15PeDs = {
             label: 'P/E of 15',
+            xAxisID: 'EarningXAxis',
             data: [],
             borderColor: 'orange',
             backgroundColor: 'rgb(51, 153, 102)',
@@ -77,6 +79,7 @@ export default {
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
+                lables: [],
                 datasets: [priceDs, price15PeDs]
             },
             options: {
@@ -87,11 +90,24 @@ export default {
 
                 scales: {
                     xAxes: [{
+                        id: 'EarningXAxis',
                         type: 'time',
+                        display: true,
                         time: {
-                            min: "2009-01-01"
-                         }
-                    }]
+                            // min: "2009-09-01",
+                            unit: 'year',
+                            displayFormats: { year: 'MM/YY' }
+                         },
+                        ticks: {
+                            source: 'labels'
+                        }
+                    },
+                    {
+                        id: 'PriceXAxis',
+                        type: 'time',
+                        display: false
+                    }
+                    ]
                 },
                 elements: {
                     point: {
@@ -147,6 +163,9 @@ export default {
             chart_earnings_ds.data.push(
                 {x: new Date(dp.dt), y: dp.e * multiple}
             )
+            // Add FY earnings date to labels[] collection
+            // so that it is displayed on the X-axis
+            this.chart.data.labels.push(new Date(dp.dt))
         })
         this.chart.update()      
     },
