@@ -94,7 +94,8 @@ export default {
                         type: 'time',
                         display: true,
                         time: {
-                            // min: "2009-09-01",
+                            //min: "2009-09-01",
+                            //max: "2016-09-01",
                             unit: 'year',
                             displayFormats: { year: 'MM/YY' }
                          },
@@ -105,6 +106,10 @@ export default {
                     {
                         id: 'PriceXAxis',
                         type: 'time',
+                        time: {
+                            //min: "2009-09-01",
+                            //max: "2016-09-01",
+                         },
                         display: false
                     }
                     ]
@@ -167,6 +172,12 @@ export default {
             // so that it is displayed on the X-axis
             this.chart.data.labels.push(new Date(dp.dt))
         })
+        var scales = this.chart.options.scales
+        var labels = this.chart.data.labels
+        scales.xAxes[0].time.min=labels[0]
+        scales.xAxes[1].time.min=llabels[0]
+        scales.xAxes[0].time.max=labels[labels.length-1]
+        scales.xAxes[1].time.max=labels[labels.length-1]
         this.chart.update()      
     },
     display_price: function(new_datapoints) {
