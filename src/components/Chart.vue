@@ -68,9 +68,13 @@ export default {
         var price15PeDs = {
             label: 'P/E of 15',
             xAxisID: 'EarningXAxis',
+            pointStyle: 'triangle',
+            pointRadius: 4,
+            pointBackgroundColor: 'white',
+            pointBorderColor: 'black',
             data: [],
             borderColor: 'orange',
-            backgroundColor: 'rgb(51, 153, 102)',
+            backgroundColor: 'rgb(51, 153, 102, 0.8)',
             fill: true,
             cubicInterpolationMode: 'monotone',
             lineTension: 0
@@ -79,7 +83,7 @@ export default {
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
-                lables: [],
+                labels: [],
                 datasets: [priceDs, price15PeDs]
             },
             options: {
@@ -94,8 +98,6 @@ export default {
                         type: 'time',
                         display: true,
                         time: {
-                            //min: "2009-09-01",
-                            //max: "2016-09-01",
                             unit: 'year',
                             displayFormats: { year: 'MM/YY' }
                          },
@@ -106,10 +108,6 @@ export default {
                     {
                         id: 'PriceXAxis',
                         type: 'time',
-                        time: {
-                            //min: "2009-09-01",
-                            //max: "2016-09-01",
-                         },
                         display: false
                     }
                     ]
