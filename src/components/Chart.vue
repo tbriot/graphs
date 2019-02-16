@@ -173,7 +173,7 @@ export default {
         var scales = this.chart.options.scales
         var labels = this.chart.data.labels
         scales.xAxes[0].time.min=labels[0]
-        scales.xAxes[1].time.min=llabels[0]
+        scales.xAxes[1].time.min=labels[0]
         scales.xAxes[0].time.max=labels[labels.length-1]
         scales.xAxes[1].time.max=labels[labels.length-1]
         this.chart.update()      
