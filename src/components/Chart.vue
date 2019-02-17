@@ -1,6 +1,7 @@
 <template>
 	<div align="center">
         <div v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }" class="chart-container">
+            <!-- <div id="stockInfo">Stock info</div> -->
             <div>Display chart for {{ ticker }} stock</div>
             <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
             <canvas ref="canvas"></canvas>
@@ -54,11 +55,14 @@ export default {
         */
         setTimeout(() => {
             if (to && this.$refs.canvas) {
-                if (!this.chart) {         
-                    console.debug('isLoggedIn watcher - init chart')
-                    this.initChart('chart')
+                console.debug('isLoggedIn watcher - setTimeout - display chart')
+                if (this.chart) {         
+                    console.debug('isLoggedIn watcher - destroy previous chart')
+                    // need to destroy previous chart because it is tied to an old context
+                    // (v-if directive re-creates html blocks during toggle)                     
+                    this.chart.destroy()
                 } 
-                this.resetChart() 
+                this.initChart('chart')
                 this.update_historical_stock_earnings()
                 this.update_historical_stock_price()
                 this.update_realtime_stock_price()
@@ -283,5 +287,9 @@ export default {
 }
 .blurredChart {
     opacity: 0.5;
+}
+#stockInfo {
+    float: right;
+	margin: 2px 10px 0px 10px;
 }
 </style>
