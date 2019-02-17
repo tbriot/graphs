@@ -1,7 +1,8 @@
 <template>
 	<div align="center">
-        <div>Display chart for {{ ticker }} stock</div>
-        <div v-if="isLoggedIn" class="chart-container">
+        <div v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }" class="chart-container">
+            <div>Display chart for {{ ticker }} stock</div>
+            <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
             <canvas ref="canvas"></canvas>
         </div>
         <div v-else class="error">Please log in</div>
@@ -19,12 +20,45 @@ export default {
   computed: {
 	  isLoggedIn: function () {
 		  return this.$store.getters.isLoggedIn
-	  }
+      },
+      anyPendingTask: function() {
+        //return true
+        return this.tasks.length > 0
+      }
   },
   data: function() {
-       return {
-           chart: null
+       return {           
+           chart: null,
+           tasks: []
        }
+  },
+  watch: {
+    '$route' (to, from) {
+        console.debug('Route watcher')
+        if (this.isLoggedIn) {
+            console.debug('Route watcher - isLoggedIn')
+            if (!this.chart) {            
+                console.debug('Route watcher - init chart')
+                this.initChart('chart')
+            } 
+            this.resetChart() 
+            this.update_historical_stock_earnings()
+            this.update_historical_stock_price()
+        }        
+    },
+    'isLoggedIn' (to, from) {
+        console.debug('isLoggedIn watcher')
+        if (to) {
+           if (!this.chart) {            
+                console.debug('isLoggedIn watcher - init chart')
+                this.initChart('chart')
+            } 
+            this.resetChart() 
+            this.update_historical_stock_earnings()
+            this.update_historical_stock_price()        
+        } 
+    }
+
   },
   created: function() {
     console.debug('CREATED')
@@ -40,16 +74,6 @@ export default {
   },
   updated: function() {
     console.debug('UPDATED- start')
-    if (this.isLoggedIn) {
-        console.debug('UPDATED - isLoggedIn')
-        if (this.chart) {            
-            this.chart.destroy()
-            console.debug('UPDATED - destroyed previous chart')
-        }
-        this.initChart('chart')        
-        this.update_historical_stock_earnings()
-        this.update_historical_stock_price()
-    }
   },
   methods: {
     initChart: function(chartDiv) {
@@ -121,8 +145,12 @@ export default {
         })
 
     },
+    resetChart: function () {
+        this.chart.data.labels=[]
+    },
     update_historical_stock_earnings: function () {
         console.debug("API call to fetch stock earnings.")
+        this.addTask("update_earnings")
         let apiName = 'StockAPI'
         let path = `/test/historical/stock/${this.ticker}`
         let myInit = {
@@ -137,11 +165,13 @@ export default {
             //console.debug('API call response:' + JSON.stringify(response))
             this.display_earning(response.data.results, 15)
             //console.debug("Earnings data refreshed")
+            this.completeTask("update_earnings")
             })
         .catch(error => {console.debug('error' + error)})
     },
     update_historical_stock_price: function () {
         console.debug("API call to fetch stock prices.")
+        this.addTask("update_prices")
         let apiName = 'StockAPI'
         let path = `/test/historical/stock/${this.ticker}/closing-price`
         let myInit = {
@@ -156,6 +186,7 @@ export default {
             //console.debug('API call response:' + JSON.stringify(response))
             this.display_price(response.data.results)
             //console.debug("Prices data refreshed")
+            this.completeTask("update_prices")
             })
         .catch(error => {console.debug('error' + error)})
     },
@@ -187,6 +218,16 @@ export default {
             )
         })
         this.chart.update()
+    },
+    addTask: function(taskname) {
+        this.tasks.push({
+            name: taskname
+        })
+    },
+    completeTask: function(taskname) {
+        this.tasks = this.tasks.filter(function( obj ) {
+            return obj.name !== taskname;
+        });
     }
   }
 }
@@ -198,5 +239,14 @@ export default {
 }
 .error {
     color: red;
+}
+#loading-image {
+  position: absolute;
+  top: calc(50% - 212px);
+  left: calc(50% - 212px + 100px);
+  z-index: 100;
+}
+.blurredChart {
+    opacity: 0.5;
 }
 </style>

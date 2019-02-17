@@ -10,9 +10,6 @@ import TopNavBar from './components/TopNavBar.vue'
 import MainWindow from './components/MainWindow.vue'
 
 export default {
-	components: {TopNavBar, MainWindow},
-	created: function () {
-		this.$store.dispatch('refreshLoggedInState')
-	}
+	components: {TopNavBar, MainWindow}
 }
 </script>
