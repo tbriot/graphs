@@ -48,15 +48,20 @@ export default {
     },
     'isLoggedIn' (to, from) {
         console.debug('isLoggedIn watcher')
-        if (to) {
-           if (!this.chart) {            
-                console.debug('isLoggedIn watcher - init chart')
-                this.initChart('chart')
-            } 
-            this.resetChart() 
-            this.update_historical_stock_earnings()
-            this.update_historical_stock_price()        
-        } 
+        /* setTimeout() allows the component to be mounted
+            before the chart is drawn
+        */
+        setTimeout(() => {
+            if (to && this.$refs.canvas) {
+                if (!this.chart) {         
+                    console.debug('isLoggedIn watcher - init chart')
+                    this.initChart('chart')
+                } 
+                this.resetChart() 
+                this.update_historical_stock_earnings()
+                this.update_historical_stock_price()
+            }
+        }, 0)
     }
 
   },
@@ -111,7 +116,7 @@ export default {
                 datasets: [priceDs, price15PeDs]
             },
             options: {
-                animation: { duration: 0 },
+                animation: { duration: 750 },
                 responsive: true,
                 maintainAspectRatio: true,
                 scaleOverride : true,
