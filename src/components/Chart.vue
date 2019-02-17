@@ -2,8 +2,16 @@
 	<div align="center">
         <div v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }">
             <div id="stockInfo">
-                Stock info<br/>
-                <img v-if="stockLogo" :src="stockLogo" alt="Stock Logo" height="75" width="75"/>
+                <ul id="stockInfoList">
+				    <li>{{ stockInfo.companyName }}</li>
+				    <li><img v-if="stockInfo.logoUrl" :src="stockInfo.logoUrl" alt="logo" height="75" width="75"/></li>
+                    <li>{{ currentDate }}</li>
+                    <li><b>Price: {{ stockInfo.lastPrice }} USD</b></li>
+                    <li><b>P/E ttm: {{ peRatioTtm }}</b></li>
+                    <li>Div Yield: {{ stockInfo.dividendYield }} %</li>
+                    <li>-</li>
+                    <li>MarketCap: {{ stockInfo.marketcap }}</li>
+			    </ul>  
             </div>
             <div class="chart-container">
                 <div>Display chart for {{ ticker }} stock</div>
@@ -18,6 +26,7 @@
 <script>
 import { API } from 'aws-amplify'
 import aws_api_config from '../config/aws-api-exports.js'
+import abbrNum from '../utils/formatNumber.js'
 
 API.configure(aws_api_config)
 
@@ -28,14 +37,24 @@ export default {
 		  return this.$store.getters.isLoggedIn
       },
       anyPendingTask: function() {
-        //return true
         return this.tasks.length > 0
+      },
+      peRatioTtm: function () {
+          return (this.stockInfo.lastPrice / this.stockInfo.ttmEPS).toFixed(1)
       }
   },
   data: function() {
        return {           
            chart: null,
-           stockLogo: null,
+           currentDate: new Date(Date.now()).toLocaleDateString(),
+           stockInfo: {
+               companyName: null,
+               logoUrl: null,
+               ttmEPS: null,
+               dividendYield: null,
+               marketcap: null,
+               lastPrice: null,
+           },
            tasks: []
        }
   },
@@ -53,6 +72,7 @@ export default {
             this.update_historical_stock_price()
             this.update_realtime_stock_price()
             this.get_stock_logo()
+            this.get_stock_stats()
         }        
     },
     'isLoggedIn' (to, from) {
@@ -74,6 +94,7 @@ export default {
                 this.update_historical_stock_price()
                 this.update_realtime_stock_price()
                 this.get_stock_logo()
+                this.get_stock_stats()
             }
         }, 0)
     }
@@ -91,6 +112,7 @@ export default {
         this.update_historical_stock_price()
         this.update_realtime_stock_price()
         this.get_stock_logo()
+        this.get_stock_stats()
     }
   },
   updated: function() {
@@ -275,6 +297,7 @@ export default {
         chart_price_ds.data.push(
                 {x: new Date(), y: lastPrice}
         )
+        this.stockInfo.lastPrice=lastPrice
         this.chart.update()
     },
     get_stock_logo: function () {
@@ -290,8 +313,29 @@ export default {
         API.get(apiName, path, myInit)
         .then(response => {
             //console.debug('API call response:' + JSON.stringify(response))
-            this.stockLogo=response.data.url
+            this.stockInfo.logoUrl=response.data.url
             this.completeTask('realtime_stock_logo')
+            })
+        .catch(error => {console.debug('error' + error)})
+    },
+    get_stock_stats: function () {
+        console.debug("API call to fetch stock key stats")
+        this.addTask('realtime_stock_stats')
+        let apiName = 'StockAPI'
+        let path = `/test/realtime/stock/${this.ticker}/stats`
+        let myInit = {
+            headers: {},
+            response: true,
+            queryStringParameters: {}
+         }
+        API.get(apiName, path, myInit)
+        .then(response => {
+            //console.debug('API call response:' + JSON.stringify(response))
+            this.stockInfo.dividendYield=response.data.dividendYield.toFixed(2)
+            this.stockInfo.companyName=response.data.companyName
+            this.stockInfo.marketcap=abbrNum(response.data.marketcap,2) 
+            this.stockInfo.ttmEPS=response.data.ttmEPS
+            this.completeTask('realtime_stock_stats')
             })
         .catch(error => {console.debug('error' + error)})
     }
@@ -301,7 +345,7 @@ export default {
 
 <style lang="scss">
 .chart-container {
-    width: 75%;
+    width: 60%;
 }
 .error {
     color: red;
@@ -318,5 +362,11 @@ export default {
 #stockInfo {
     float: right;
 	margin: 2px 20px 0px 10px;
+}
+ul#stockInfoList {
+  display: table;
+  text-align: left;
+  list-style-type: none;
+  padding: 0px;
 }
 </style>
