@@ -1,10 +1,15 @@
 <template>
 	<div align="center">
-        <div v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }" class="chart-container">
-            <!-- <div id="stockInfo">Stock info</div> -->
-            <div>Display chart for {{ ticker }} stock</div>
-            <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
-            <canvas ref="canvas"></canvas>
+        <div v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }">
+            <div id="stockInfo">
+                Stock info<br/>
+                <img v-if="stockLogo" :src="stockLogo" alt="Stock Logo" height="75" width="75"/>
+            </div>
+            <div class="chart-container">
+                <div>Display chart for {{ ticker }} stock</div>
+                <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
+                <canvas ref="canvas"></canvas>
+            </div>
         </div>
         <div v-else class="error">Please log in</div>
     </div>
@@ -30,6 +35,7 @@ export default {
   data: function() {
        return {           
            chart: null,
+           stockLogo: null,
            tasks: []
        }
   },
@@ -46,6 +52,7 @@ export default {
             this.update_historical_stock_earnings()
             this.update_historical_stock_price()
             this.update_realtime_stock_price()
+            this.get_stock_logo()
         }        
     },
     'isLoggedIn' (to, from) {
@@ -267,6 +274,24 @@ export default {
                 {x: new Date(), y: lastPrice}
         )
         this.chart.update()
+    },
+    get_stock_logo: function () {
+        console.debug("API call to fetch stock logo")
+        this.addTask('realtime_stock_logo')
+        let apiName = 'StockAPI'
+        let path = `/test/realtime/stock/${this.ticker}/logo`
+        let myInit = {
+            headers: {},
+            response: true,
+            queryStringParameters: {}
+         }
+        API.get(apiName, path, myInit)
+        .then(response => {
+            //console.debug('API call response:' + JSON.stringify(response))
+            this.stockLogo=response.data.url
+            this.completeTask('realtime_stock_logo')
+            })
+        .catch(error => {console.debug('error' + error)})
     }
   }
 }
@@ -290,6 +315,6 @@ export default {
 }
 #stockInfo {
     float: right;
-	margin: 2px 10px 0px 10px;
+	margin: 2px 20px 0px 10px;
 }
 </style>
