@@ -73,6 +73,7 @@ export default {
                 this.update_historical_stock_earnings()
                 this.update_historical_stock_price()
                 this.update_realtime_stock_price()
+                this.get_stock_logo()
             }
         }, 0)
     }
@@ -89,6 +90,7 @@ export default {
         this.update_historical_stock_earnings()
         this.update_historical_stock_price()
         this.update_realtime_stock_price()
+        this.get_stock_logo()
     }
   },
   updated: function() {
