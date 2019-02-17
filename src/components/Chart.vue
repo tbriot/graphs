@@ -44,6 +44,7 @@ export default {
             this.resetChart() 
             this.update_historical_stock_earnings()
             this.update_historical_stock_price()
+            this.update_realtime_stock_price()
         }        
     },
     'isLoggedIn' (to, from) {
@@ -60,6 +61,7 @@ export default {
                 this.resetChart() 
                 this.update_historical_stock_earnings()
                 this.update_historical_stock_price()
+                this.update_realtime_stock_price()
             }
         }, 0)
     }
@@ -75,6 +77,7 @@ export default {
         this.initChart('chart')
         this.update_historical_stock_earnings()
         this.update_historical_stock_price()
+        this.update_realtime_stock_price()
     }
   },
   updated: function() {
@@ -85,13 +88,13 @@ export default {
         var ctx = this.$refs.canvas.getContext('2d')
 
         var priceDs = {
+            data: [],
             label: this.ticker + ' stock price',
             xAxisID: 'PriceXAxis',
-            data: [],
             borderColor: 'black',
-            fill: false,
-            // cubicInterpolationMode: 'monotone',
-            lineTension: 0
+            lineTension: 0,
+            pointRadius: 0,
+            fill: false
         }
 
         var price15PeDs = {
@@ -152,6 +155,9 @@ export default {
     },
     resetChart: function () {
         this.chart.data.labels=[]
+        // Remove all prices datapoints
+        var chart_price_ds = this.chart.data.datasets[0]
+        chart_price_ds.data=[]
     },
     update_historical_stock_earnings: function () {
         console.debug("API call to fetch stock earnings.")
@@ -216,7 +222,6 @@ export default {
     },
     display_price: function(new_datapoints) {
         var chart_price_ds = this.chart.data.datasets[0]
-        chart_price_ds.data=[]
         new_datapoints.forEach((dp) => {
             chart_price_ds.data.push(
                 {x: new Date(dp.dt), y: dp.p}
@@ -233,6 +238,31 @@ export default {
         this.tasks = this.tasks.filter(function( obj ) {
             return obj.name !== taskname;
         });
+    },
+    update_realtime_stock_price: function () {
+        console.debug("API call to fetch realtime stock price")
+        this.addTask('realtime_stock_price')
+        let apiName = 'StockAPI'
+        let path = `/test/realtime/stock/${this.ticker}/price`
+        let myInit = {
+            headers: {},
+            response: true,
+            queryStringParameters: {}
+         }
+        API.get(apiName, path, myInit)
+        .then(response => {
+            //console.debug('API call response:' + JSON.stringify(response))
+            this.display_realtime_stock_price(response.data)
+            this.completeTask('realtime_stock_price')
+            })
+        .catch(error => {console.debug('error' + error)})
+    },
+    display_realtime_stock_price: function(lastPrice) {
+        var chart_price_ds = this.chart.data.datasets[0]
+        chart_price_ds.data.push(
+                {x: new Date(), y: lastPrice}
+        )
+        this.chart.update()
     }
   }
 }
