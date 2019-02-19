@@ -17,6 +17,11 @@
                 <div>Display chart for {{ ticker }} stock</div>
                 <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
                 <canvas ref="canvas"></canvas>
+                <div v-bind:class="{ chartBtnActive: isActiveCustomPe, chartBtnInactive: !isActiveCustomPe }">
+                    <div v-on:click="isActiveCustomPe=!isActiveCustomPe">Custom p/e ratio</div>
+                    <input type="number" style="width: 30px;" v-model.number="customPeRatio"/>
+                    <input type="button" value="ok" v-on:click="drawCustomPe()"/>
+                </div>
             </div>
         </div>
         <div v-else class="error">Please log in</div>
@@ -47,6 +52,8 @@ export default {
        return {           
            chart: null,
            currentDate: new Date(Date.now()).toLocaleDateString(),
+           isActiveCustomPe: false,
+           customPeRatio: 20,
            stockInfo: {
                companyName: null,
                logoUrl: null,
@@ -97,6 +104,11 @@ export default {
                 this.get_stock_stats()
             }
         }, 0)
+    },
+    'isActiveCustomPe' (to, from) {
+        console.debug('isActiveCustomPe watcher, to=' + to)
+        this.chart.data.datasets[2].hidden = !to
+        this.chart.update()
     }
 
   },
@@ -143,15 +155,25 @@ export default {
             borderColor: 'orange',
             backgroundColor: 'rgb(51, 153, 102, 0.8)',
             fill: true,
-            cubicInterpolationMode: 'monotone',
             lineTension: 0
+        }
+
+        var CustomPeDs = {
+            hidden: true,
+            data: [],
+            label: 'Custom P/E',
+            xAxisID: 'PriceXAxis',
+            borderColor: 'red',
+            lineTension: 0,
+            pointRadius: 2,
+            fill: false
         }
 
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: [],
-                datasets: [priceDs, price15PeDs]
+                datasets: [priceDs, price15PeDs, CustomPeDs]
             },
             options: {
                 animation: { duration: 750 },
@@ -193,6 +215,12 @@ export default {
         // Remove all prices datapoints
         var chart_price_ds = this.chart.data.datasets[0]
         chart_price_ds.data=[]
+        // Remove custom PE datapoints
+        var chart_customPe_ds = this.chart.data.datasets[2]
+        chart_customPe_ds.data=[]
+        // Remove 15 PE datapoints
+        var chart_15Pe_ds = this.chart.data.datasets[1]
+        chart_15Pe_ds.data=[]
     },
     update_historical_stock_earnings: function () {
         console.debug("API call to fetch stock earnings.")
@@ -338,6 +366,21 @@ export default {
             this.completeTask('realtime_stock_stats')
             })
         .catch(error => {console.debug('error' + error)})
+    },
+    drawCustomPe() {
+        var ratio = this.customPeRatio
+        console.debug("Draw custom PE. Ratio=" + ratio)
+        var _15PeDs= this.chart.data.datasets[1]
+        var customPeDs = this.chart.data.datasets[2]
+
+        customPeDs.data = []
+        _15PeDs.data.forEach((dp) => {
+            customPeDs.data.push(
+                {x: dp.x, y: (dp.y / 15) * ratio}
+            )
+        })
+        console.debug("customPeDatas=" + customPeDs.data)
+        this.chart.update()
     }
   }
 }
@@ -368,5 +411,13 @@ ul#stockInfoList {
   text-align: left;
   list-style-type: none;
   padding: 0px;
+}
+.chartBtnActive {
+    color: black;
+    cursor: pointer;
+}
+.chartBtnInactive {
+    opacity: 0.3;
+    cursor: pointer;
 }
 </style>
