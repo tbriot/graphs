@@ -3,15 +3,17 @@ import Amplify, * as  AmplifyModules from 'aws-amplify'
 import { AmplifyPlugin } from 'aws-amplify-vue'
 import { AmplifyEventBus } from 'aws-amplify-vue'
 import aws_auth_config from './config/aws-auth-exports.js'
-import VueRouter from 'vue-router'
-import { createRouter } from './router/index.js'
 
 import Vue from 'vue'
+import './plugins/vuetify.js'
+
 import App from './App.vue'
+
+import { createRouter } from './router/index.js'
 
 Auth.configure(aws_auth_config)
 
-Vue.use(AmplifyPlugin, AmplifyModules, VueRouter)
+Vue.use(AmplifyPlugin, AmplifyModules)
 
 // Vuex (store)
 import store from './store/index.js'

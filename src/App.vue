@@ -1,15 +1,25 @@
 <template>
-	<div class="App">
-		<TopNavBar/>
-		<MainWindow/>
-	</div>
+  <v-app>
+
+    <Toolbar/>
+
+    <v-content>
+      <router-view></router-view>
+    </v-content>
+
+  </v-app>
 </template>
 
 <script>
-import TopNavBar from './components/TopNavBar.vue'
-import MainWindow from './components/MainWindow.vue'
+import Vue from 'vue'
+import Vuetify from 'vuetify'
+
+Vue.use(Vuetify)
+
+import Toolbar from "./components/Toolbar.vue";
 
 export default {
-	components: {TopNavBar, MainWindow}
-}
+  name: 'App',
+  components: { Toolbar }
+};
 </script>

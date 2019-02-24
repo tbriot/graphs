@@ -22,19 +22,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.UserProfile {
-	background-color: #e1e4ea;
-	float: right;
-    width: calc(100% - 100px);
-    height: 100%;
-	margin: 0px 0px 0px 0px;
-	font-family: "Amazon Ember";
-	font-size: 28px
-}
-
-.profile {
-	margin: 10px 10px 10px 50px
-}
-</style>
