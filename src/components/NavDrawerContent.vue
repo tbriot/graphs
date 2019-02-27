@@ -1,8 +1,9 @@
 <template>
   <div>
 
-        <v-list>
-            <v-list-tile>
+        <v-list>            
+						
+						<v-list-tile>
               <v-list-tile-content>                    
                 <v-toolbar app dark dense>
                   <v-toolbar-side-icon @click="$emit('drawerToggle')"></v-toolbar-side-icon>

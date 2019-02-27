@@ -1,5 +1,9 @@
 <template>
-	<div align="center">Homepage. Welcome to graphs.tbriot.com !</div>
+	<div align="center">
+		<h2>
+		  Homepage. Welcome to graphs.tbriot.com !
+		</h2>
+	</div>
 </template>
 
 <script>

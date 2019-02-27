@@ -3,8 +3,8 @@
 
     <Toolbar/>
 
-    <v-content>
-      <router-view></router-view>
+    <v-content class="grey darken-4 blue-grey--text text--lighten-3">
+      <router-view class="mt-3"></router-view>
     </v-content>
 
   </v-app>

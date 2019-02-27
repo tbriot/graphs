@@ -1,6 +1,6 @@
 <template>
-  <nav>
-    <v-toolbar app dense class="blue-grey darken-4" dark>
+  <div>
+    <v-toolbar app dense class="blue-grey darken-3" dark>
 	  <v-toolbar-side-icon @click="drawer = !drawer"></v-toolbar-side-icon>
       <v-toolbar-title class="headline text-uppercase">
 		  
@@ -23,11 +23,11 @@
 
     </v-toolbar>
 
-	<v-navigation-drawer v-model="drawer" app dark temporary>
+	<v-navigation-drawer v-model="drawer" app dark temporary clipped>
 		<NavDrawerContent v-on:drawerToggle="drawer = !drawer"/>
 	</v-navigation-drawer>
 	
-  </nav>
+  </div>
 </template>
 
 <script>
