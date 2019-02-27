@@ -1,5 +1,5 @@
 <template>
-	<div class="UserProfile">
+	<div>
 		<div  align="center">User profile</div>
 		<br>
 		<div v-if="isLoggedIn" class="profile">
