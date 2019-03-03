@@ -5,32 +5,35 @@
         :items="items"
         :search-input.sync="search"
         @change="change"
-        label="Search Ticker or Company"
+        label="Search by Ticker or Company"
         solo
         flat
-        return-object>
+        return-object
+        clearable
+        :menu-props="{ dark: true}"
+        prepend-inner-icon="search"
+        full-width>
 	</v-autocomplete>
 </template>
 
 <script>
+import { API } from 'aws-amplify'
+import aws_api_config from '../config/aws-api-exports.js'
+
+API.configure(aws_api_config)
+
 export default {
     data: function () {
         return {
             select: null,
             search: null,
             loading: false,
-            items: [],
-            apiResponse: [
-                {text: "Apple", value: "AAPL"},
-                {text: "Amazon", value: "AMZN"},
-                {text: "Facebook", value: "FB"},
-                {text: "Disney", value: "DIS"},
-            ] 
+            items: [] 
         }
     },
     watch: {
       search (val) {
-        val && val !== this.select && this.querySelections(val)
+        val && val !== this.select && this.asynch_search(val)
       }
     },
     methods: {
@@ -38,15 +41,28 @@ export default {
             var ticker = selection_obj.value
             this.$router.push({ name: 'chart', params: { ticker: ticker } })
         },
-        querySelections(val) {
+        asynch_search: function (term) {
             this.loading = true
-            // Simulated ajax query
-            setTimeout(() => {
-            this.items = this.apiResponse.filter(e => {
-                return (e.text || '').toLowerCase().indexOf((val || '').toLowerCase()) > -1
-            })
-            this.loading = false
-            }, 500)
+
+            let apiName = 'StockAPI'
+            let path = "/test/search"
+            let myInit = {
+                headers: {},
+                response: true,
+                queryStringParameters: {"term": term}
+             }
+            API.get(apiName, path, myInit)
+            .then(response => {
+                console.debug('API call response:' + JSON.stringify(response))
+                this.items = []
+                response.data.results.forEach((e) => {
+                    this.items.push(
+                        {text: `${e.ticker} - ${e.company}`, value: e.ticker}
+                    )
+                })
+                this.loading = false
+                })
+            .catch(error => {console.debug('error' + error)})
         }
     }
 }
