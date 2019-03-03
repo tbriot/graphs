@@ -10,7 +10,11 @@
         <span class="blue-grey--text text--lighten-3">Graphs</span>
       </v-toolbar-title>
 
-      <v-spacer></v-spacer>
+      <v-spacer/>
+
+			<SearchBox/>
+
+      <v-spacer/>
 
 	  <v-toolbar-items v-if="isLoggedIn">
 	    <ToolbarUserMenu></ToolbarUserMenu>	
@@ -35,9 +39,10 @@
 import NavDrawerContent from './NavDrawerContent.vue'
 import ToolbarUserMenu from './ToolbarUserMenu.vue'
 import SignInFormMenu from './SignInFormMenu.vue'
+import SearchBox from './SearchBox.vue'
 
 export default {
-  components: { ToolbarUserMenu, NavDrawerContent, SignInFormMenu},
+  components: { ToolbarUserMenu, NavDrawerContent, SignInFormMenu, SearchBox},
   computed: {
 	  isLoggedIn: function () {
 		  return this.$store.getters.isLoggedIn

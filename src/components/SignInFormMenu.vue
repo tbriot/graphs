@@ -4,10 +4,10 @@
 		  <div slot=activator align-self-center class="pa-3 blue-grey--text text--lighten-3">Already have an account ? Sign In▼</div>
         <v-layout column align-center class="blue-grey darken-4 white--text ma-0 pa-0">
           <v-flex class="mt-2 white--text">
-            <v-text-field v-model="username" label="Username" outline hide-details="true" dark/>
+            <v-text-field v-model="username" label="Username" outline hide-details dark/>
           </v-flex>
           <v-flex class="mt-2" height="150">
-            <v-text-field v-model="password" label="Password" :type="showPassword ? 'text' : 'password'" outline hide-details="true" dark />
+            <v-text-field v-model="password" label="Password" :type="showPassword ? 'text' : 'password'" outline hide-details dark />
           </v-flex>
           <v-flex class="mt-1">
             <v-btn round dark class="primary" @click="signIn">Sign In</v-btn>
