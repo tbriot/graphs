@@ -1,31 +1,47 @@
 <template>
-	<div align="center">
-        <div v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }">
-            <div id="stockInfo">
-                <ul id="stockInfoList">
-				    <li>{{ stockInfo.companyName }}</li>
-				    <li><img v-if="stockInfo.logoUrl" :src="stockInfo.logoUrl" alt="logo" height="75" width="75"/></li>
-                    <li>{{ currentDate }}</li>
-                    <li><b>Price: {{ stockInfo.lastPrice }} USD</b></li>
-                    <li><b>P/E ttm: {{ peRatioTtm }}</b></li>
-                    <li>Div Yield: {{ stockInfo.dividendYield }} %</li>
-                    <li>-</li>
-                    <li>MarketCap: {{ stockInfo.marketcap }}</li>
-			    </ul>  
-            </div>
-            <div class="chart-container">
-                <div>Display chart for {{ ticker }} stock</div>
-                <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
-                <canvas ref="canvas"></canvas>
-                <div v-bind:class="{ chartBtnActive: isActiveCustomPe, chartBtnInactive: !isActiveCustomPe }">
-                    <div v-on:click="isActiveCustomPe=!isActiveCustomPe">Custom p/e ratio</div>
-                    <input type="number" style="width: 30px;" v-model.number="customPeRatio"/>
-                    <input type="button" value="ok" v-on:click="drawCustomPe()"/>
-                </div>
-            </div>
-        </div>
-        <div v-else class="error">Please log in</div>
-    </div>
+    <v-container fluid>
+        <v-layout align-start justify-center row>
+
+            <v-flex v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }" xs6 pa-2>
+                <v-card dark>
+                    <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
+                    <canvas ref="canvas"></canvas>
+
+
+                    <v-layout align-start justify-center row>
+                        <v-flex xs2>
+                            <v-card class="pa-2" color="blue-grey" v-bind:class="{ chartBtnActive: isActiveCustomPe, chartBtnInactive: !isActiveCustomPe }">
+                                <div v-on:click="isActiveCustomPe=!isActiveCustomPe">Custom p/e ratio</div>
+                                <input type="number" style="width: 30px;" v-model.number="customPeRatio"/>
+                                <v-btn small v-on:click="drawCustomPe()">ok</v-btn>
+                            </v-card>
+                        </v-flex>
+                    </v-layout>
+
+                </v-card>
+            </v-flex>
+
+            <v-flex v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }" xs2 pa-2>
+                <v-card dark class="pa-3">
+                    <ul id="stockInfoList">
+			            <li class="headline">{{ stockInfo.companyName }}</li>
+			            <li><img v-if="stockInfo.logoUrl" :src="stockInfo.logoUrl" alt="logo" height="75" width="75"/></li>
+                        <li>{{ currentDate }}</li>
+                        <li><b>Price: {{ stockInfo.lastPrice }} USD</b></li>
+                        <li><b>P/E ttm: {{ peRatioTtm }}</b></li>
+                        <li>Div Yield: {{ stockInfo.dividendYield }} %</li>
+                        <li>-</li>
+                        <li>MarketCap: {{ stockInfo.marketcap }}</li>
+			        </ul> 
+                </v-card>
+            </v-flex>
+            
+            <v-flex v-if="!isLoggedIn" xs6>
+                <div class="error">Please log in</div>
+            </v-flex>  
+            
+        </v-layout>
+    </v-container>
 </template>
 
 <script>
@@ -180,7 +196,11 @@ export default {
                 responsive: true,
                 maintainAspectRatio: true,
                 scaleOverride : true,
-
+                legend: {
+                   labels: {
+                      fontColor: 'white'
+                   }
+                },
                 scales: {
                     xAxes: [{
                         id: 'EarningXAxis',
@@ -191,15 +211,24 @@ export default {
                             displayFormats: { year: 'MM/YY' }
                          },
                         ticks: {
-                            source: 'labels'
+                            source: 'labels',
+                            fontColor: "white"
                         }
                     },
                     {
                         id: 'PriceXAxis',
                         type: 'time',
-                        display: false
+                        display: false,
+                        ticks: {
+                            fontColor: "white"
+                        }
                     }
-                    ]
+                    ],
+                    yAxes: [{
+                       ticks: {
+                          fontColor: "white"
+                       }
+                    }]
                 },
                 elements: {
                     point: {
@@ -387,9 +416,6 @@ export default {
 </script>
 
 <style lang="scss">
-.chart-container {
-    width: 60%;
-}
 .error {
     color: red;
 }
@@ -401,10 +427,6 @@ export default {
 }
 .blurredChart {
     opacity: 0.5;
-}
-#stockInfo {
-    float: right;
-	margin: 2px 20px 0px 10px;
 }
 ul#stockInfoList {
   display: table;
