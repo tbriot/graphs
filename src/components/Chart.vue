@@ -21,7 +21,7 @@
                 </v-card>
             </v-flex>
 
-            <v-flex v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }" xs2 pa-2>
+            <v-flex v-if="isLoggedIn" :class="{ blurredChart: anyPendingTask }" xs3 pa-2>
                 <v-card dark class="pa-3">
                     <ul id="stockInfoList">
 			            <li class="headline">{{ stockInfo.companyName }}</li>
@@ -30,6 +30,9 @@
                         <li><b>Price: {{ stockInfo.lastPrice }} USD</b></li>
                         <li><b>P/E ttm: {{ peRatioTtm }}</b></li>
                         <li>Div Yield: {{ stockInfo.dividendYield }} %</li>
+                        <li>-</li>
+                        <li>Earnings growth: {{ (this.earningsGrowth * 100).toFixed(2) }}%</li>
+                        <li>{{ this.GDFPeRatio.formula }} : {{ this.GDFPeRatio.ratio.toFixed(2) }}</li>
                         <li>-</li>
                         <li>MarketCap: {{ stockInfo.marketcap }}</li>
 			        </ul> 
@@ -62,11 +65,32 @@ export default {
       },
       peRatioTtm: function () {
           return (this.stockInfo.lastPrice / this.stockInfo.ttmEPS).toFixed(1)
+      },
+      GDFPeRatio() {
+          if (this.earningsGrowth <= 0.05) {
+              var ratio = 8.5 + 2 * this.earningsGrowth * 100
+              return {
+                  formula: 'GDF',
+                  ratio: ratio > 15 ? 15 : ratio,
+              }
+          } else if (this.earningsGrowth >= 0.15) {
+            return {
+                formula: 'P/E=G',
+                ratio: this.earningsGrowth * 100
+            }
+          } else {
+            return {
+                formula: 'GDF...P/E=G',
+                ratio: 15                  
+            }
+          }            
       }
   },
   data: function() {
        return {           
            chart: null,
+           earnings: [], // stock earnings
+           earningsGrowth: 0, // percentage annualized
            currentDate: new Date(Date.now()).toLocaleDateString(),
            isActiveCustomPe: false,
            customPeRatio: 20,
@@ -97,6 +121,9 @@ export default {
             this.get_stock_logo()
             this.get_stock_stats()
         }        
+    },
+    GDFPeRatio(to, from) {
+        this.drawGDFPeLine()
     },
     'isLoggedIn' (to, from) {
         console.debug('isLoggedIn watcher')
@@ -160,8 +187,8 @@ export default {
             fill: false
         }
 
-        var price15PeDs = {
-            label: 'P/E of 15',
+        var priceGDFPeDs = {
+            label: 'GDF P/E',
             xAxisID: 'EarningXAxis',
             pointStyle: 'triangle',
             pointRadius: 4,
@@ -189,7 +216,7 @@ export default {
             type: 'line',
             data: {
                 labels: [],
-                datasets: [priceDs, price15PeDs, CustomPeDs]
+                datasets: [priceDs, priceGDFPeDs, CustomPeDs]
             },
             options: {
                 animation: { duration: 750 },
@@ -266,7 +293,8 @@ export default {
         API.get(apiName, path, myInit)
         .then(response => {
             //console.debug('API call response:' + JSON.stringify(response))
-            this.display_earning(response.data.results, 15)
+            this.saveEarnings(response.data.results)
+            this.display_earning(response.data.results, 35)
             //console.debug("Earnings data refreshed")
             this.completeTask("update_earnings")
             })
@@ -410,7 +438,35 @@ export default {
         })
         console.debug("customPeDatas=" + customPeDs.data)
         this.chart.update()
-    }
+    },
+    saveEarnings(apiDatapoints) {
+        this.earnings = []
+        apiDatapoints.forEach((dp) => {
+            this.earnings.push(
+                {x: new Date(dp.dt), y: dp.e}
+            )
+        })
+        this.computeEarningsGrowth()
+    },
+    computeEarningsGrowth() {
+        var startDp = this.earnings[0]
+        var lastDp = this.earnings[this.earnings.length-1] 
+        var growthPercentage = (lastDp.y - startDp.y) / startDp.y
+        var numberOfYears = lastDp.x.getYear() - startDp.x.getYear()
+        console.log('Number of years: ' + numberOfYears)
+        this.earningsGrowth = (1 + growthPercentage) ** (1 / numberOfYears)  - 1
+    },
+    drawGDFPeLine() {
+        console.debug("Draw GDF PE line. ratio=" + this.GDFPeRatio.ratio)
+        var GDFPeDs= this.chart.data.datasets[1]
+        GDFPeDs.data = []
+        this.earnings.forEach((dp) => {
+            GDFPeDs.data.push(
+                {x: dp.x, y: dp.y * this.GDFPeRatio.ratio}
+            )
+        })
+        this.chart.update()
+    },
   }
 }
 </script>
