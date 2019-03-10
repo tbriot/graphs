@@ -53,7 +53,7 @@ export default {
              }
             API.get(apiName, path, myInit)
             .then(response => {
-                console.debug('API call response:' + JSON.stringify(response))
+                //console.debug('API call response:' + JSON.stringify(response))
                 this.items = []
                 response.data.results.forEach((e) => {
                     this.items.push(

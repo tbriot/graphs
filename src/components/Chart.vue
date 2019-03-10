@@ -33,6 +33,7 @@
                         <li>-</li>
                         <li>Earnings growth: {{ (this.earningsGrowth * 100).toFixed(2) }}%</li>
                         <li>{{ this.GDFPeRatio.formula }} : {{ this.GDFPeRatio.ratio.toFixed(2) }}</li>
+                        <li>Normal P/E: {{ this.normalPeRatio.toFixed(2) }}</li>
                         <li>-</li>
                         <li>MarketCap: {{ stockInfo.marketcap }}</li>
 			        </ul> 
@@ -54,6 +55,22 @@ import abbrNum from '../utils/formatNumber.js'
 
 API.configure(aws_api_config)
 
+function average(list) {
+    var sum = list.reduce((previous, current) => current += previous)
+    return sum / list.length
+}
+
+function truncateDate(d) {
+    return d.getUTCFullYear() +"-"+ (d.getUTCMonth()+1)
+}
+
+function trimMinMax(list) {
+    var max = Math.max.apply(null, list)
+    var min = Math.min.apply(null, list)
+    return list.filter(function(value, index, arr){
+        return (value != min && value != max)
+    });
+}
 export default {
   props: ['ticker'],
   computed: {
@@ -94,6 +111,7 @@ export default {
            currentDate: new Date(Date.now()).toLocaleDateString(),
            isActiveCustomPe: false,
            customPeRatio: 20,
+           normalPeRatio: 0,
            stockInfo: {
                companyName: null,
                logoUrl: null,
@@ -125,6 +143,9 @@ export default {
     GDFPeRatio(to, from) {
         this.drawGDFPeLine()
     },
+    normalPeRatio(to, from) {
+        this.drawNormalPeLine()
+    },
     'isLoggedIn' (to, from) {
         console.debug('isLoggedIn watcher')
         /* setTimeout() allows the component to be mounted
@@ -152,8 +173,10 @@ export default {
         console.debug('isActiveCustomPe watcher, to=' + to)
         this.chart.data.datasets[2].hidden = !to
         this.chart.update()
+    },
+    anyPendingTask(to, from) {
+        if (from && !to) { this.computeNormalPeRatio() }
     }
-
   },
   created: function() {
     console.debug('CREATED')
@@ -212,11 +235,21 @@ export default {
             fill: false
         }
 
+        var priceNormalPeDs = {
+            data: [],
+            label: 'Normal P/E',
+            xAxisID: 'PriceXAxis',
+            borderColor: 'blue',
+            lineTension: 0,
+            pointRadius: 2,
+            fill: false
+        }
+
         this.chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: [],
-                datasets: [priceDs, priceGDFPeDs, CustomPeDs]
+                datasets: [priceDs, priceGDFPeDs, CustomPeDs, priceNormalPeDs]
             },
             options: {
                 animation: { duration: 750 },
@@ -453,16 +486,44 @@ export default {
         var lastDp = this.earnings[this.earnings.length-1] 
         var growthPercentage = (lastDp.y - startDp.y) / startDp.y
         var numberOfYears = lastDp.x.getYear() - startDp.x.getYear()
-        console.log('Number of years: ' + numberOfYears)
+        // console.log('Number of years: ' + numberOfYears)
         this.earningsGrowth = (1 + growthPercentage) ** (1 / numberOfYears)  - 1
+    },
+    computeNormalPeRatio() {
+        var PeRatioList = []
+        this.earnings.forEach((dp) => {        
+            var price = this.getPriceAtDate(dp.x)
+            if (price) { PeRatioList.push(price/dp.y) }
+        })        
+        this.normalPeRatio = average(trimMinMax(PeRatioList))
+    },
+    getPriceAtDate(date) {
+        var dateMonth = truncateDate(date)
+        var PriceList= this.chart.data.datasets[0].data
+        var i
+        for (i = 0; i < PriceList.length; i++) {
+            var dp = PriceList[i]
+            if (dateMonth === truncateDate(dp.x)) { return dp.y }
+        }      
     },
     drawGDFPeLine() {
         console.debug("Draw GDF PE line. ratio=" + this.GDFPeRatio.ratio)
-        var GDFPeDs= this.chart.data.datasets[1]
-        GDFPeDs.data = []
+        var GDFPeDataDs = this.chart.data.datasets[1]
+        GDFPeDataDs.data = []
         this.earnings.forEach((dp) => {
-            GDFPeDs.data.push(
+            GDFPeDataDs.data.push(
                 {x: dp.x, y: dp.y * this.GDFPeRatio.ratio}
+            )
+        })
+        this.chart.update()
+    },
+    drawNormalPeLine() {
+        console.debug("Draw Normal PE line. ratio=" + this.normalPeRatio)
+        var NormalPeDs = this.chart.data.datasets[3]
+        NormalPeDs.data = []
+        this.earnings.forEach((dp) => {
+            NormalPeDs.data.push(
+                {x: dp.x, y: dp.y * this.normalPeRatio}
             )
         })
         this.chart.update()
