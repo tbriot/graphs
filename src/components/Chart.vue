@@ -13,7 +13,7 @@
                             <v-card class="pa-2" color="blue-grey" v-bind:class="{ chartBtnActive: isActiveCustomPe, chartBtnInactive: !isActiveCustomPe }">
                                 <div v-on:click="isActiveCustomPe=!isActiveCustomPe">Custom p/e ratio</div>
                                 <input type="number" style="width: 30px;" v-model.number="customPeRatio"/>
-                                <v-btn small v-on:click="drawCustomPe()">ok</v-btn>
+                                <v-btn small v-on:click="drawCustomPeLine()">ok</v-btn>
                             </v-card>
                         </v-flex>
                     </v-layout>
@@ -436,21 +436,6 @@ export default {
             })
         .catch(error => {console.debug('error' + error)})
     },
-    drawCustomPe() {
-        var ratio = this.customPeRatio
-        console.debug("Draw custom PE. Ratio=" + ratio)
-        var _15PeDs= this.chart.data.datasets[1]
-        var customPeDs = this.chart.data.datasets[2]
-
-        customPeDs.data = []
-        _15PeDs.data.forEach((dp) => {
-            customPeDs.data.push(
-                {x: dp.x, y: (dp.y / 15) * ratio}
-            )
-        })
-        console.debug("customPeDatas=" + customPeDs.data)
-        this.chart.update()
-    },
     saveEarnings(apiDatapoints) {
         this.earnings = []
         this.chart.data.labels = []
@@ -521,6 +506,17 @@ export default {
         })
         this.chart.update()
     },
+    drawCustomPeLine() {
+        console.debug("Draw Custom PE line. ratio=" + this.customPeRatio)
+        var customPeDs = this.chart.data.datasets[2]
+        customPeDs.data = []
+        this.earnings.forEach((dp) => {
+            customPeDs.data.push(
+                {x: dp.x, y: dp.y * this.customPeRatio}
+            )
+        })
+        this.chart.update()
+    }
   }
 }
 </script>
