@@ -106,6 +106,10 @@ export default {
   data: function() {
        return {           
            chart: null,
+           priceDs: null,
+           customPeDs: null,
+           normalPeDs: null,
+           GDFPeDs: null,
            earnings: [], // stock earnings
            earningsGrowth: 0, // percentage annualized
            currentDate: new Date(Date.now()).toLocaleDateString(),
@@ -210,7 +214,7 @@ export default {
             fill: false
         }
 
-        var priceGDFPeDs = {
+        var GDFPeDs = {
             label: 'GDF P/E',
             xAxisID: 'EarningXAxis',
             pointStyle: 'triangle',
@@ -224,7 +228,7 @@ export default {
             lineTension: 0
         }
 
-        var CustomPeDs = {
+        var customPeDs = {
             hidden: true,
             data: [],
             label: 'Custom P/E',
@@ -235,7 +239,7 @@ export default {
             fill: false
         }
 
-        var priceNormalPeDs = {
+        var normalPeDs = {
             data: [],
             label: 'Normal P/E',
             xAxisID: 'PriceXAxis',
@@ -249,7 +253,7 @@ export default {
             type: 'line',
             data: {
                 labels: [],
-                datasets: [priceDs, priceGDFPeDs, CustomPeDs, priceNormalPeDs]
+                datasets: [priceDs, customPeDs, normalPeDs, GDFPeDs]
             },
             options: {
                 animation: { duration: 750 },
@@ -298,12 +302,17 @@ export default {
             }
         })
 
+        this.priceDs = this.chart.data.datasets[0]
+        this.customPeDs = this.chart.data.datasets[1]
+        this.normalPeDs = this.chart.data.datasets[2]
+        this.GDFPeDs = this.chart.data.datasets[3]
+
     },
     resetChart: function () {
         this.chart.data.labels=[]
         // Empty all datasets
-         this.chart.data.datasets.forEach((ds) => {
-            ds.data=[]
+        this.chart.data.datasets.forEach((ds) => {
+          ds.data=[]
         })
     },
     update_historical_stock_earnings: function () {
@@ -348,9 +357,8 @@ export default {
         .catch(error => {console.debug('error' + error)})
     },
     display_price: function(new_datapoints) {
-        var chart_price_ds = this.chart.data.datasets[0]
         new_datapoints.forEach((dp) => {
-            chart_price_ds.data.push(
+            this.priceDs.data.push(
                 {x: new Date(dp.dt), y: dp.p}
             )
         })
@@ -385,8 +393,7 @@ export default {
         .catch(error => {console.debug('error' + error)})
     },
     display_realtime_stock_price: function(lastPrice) {
-        var chart_price_ds = this.chart.data.datasets[0]
-        chart_price_ds.data.push(
+        this.priceDs.data.push(
                 {x: new Date(), y: lastPrice}
         )
         this.stockInfo.lastPrice=lastPrice
@@ -472,7 +479,7 @@ export default {
     },
     getPriceAtDate(date) {
         var dateMonth = truncateDate(date)
-        var PriceList= this.chart.data.datasets[0].data
+        var PriceList= this.priceDs.data
         var i
         for (i = 0; i < PriceList.length; i++) {
             var dp = PriceList[i]
@@ -481,10 +488,9 @@ export default {
     },
     drawGDFPeLine() {
         console.debug("Draw GDF PE line. ratio=" + this.GDFPeRatio.ratio)
-        var GDFPeDataDs = this.chart.data.datasets[1]
-        GDFPeDataDs.data = []
+        this.GDFPeDs.data = []
         this.earnings.forEach((dp) => {
-            GDFPeDataDs.data.push(
+            this.GDFPeDs.data.push(
                 {x: dp.x, y: dp.y * this.GDFPeRatio.ratio}
             )
         })
@@ -492,10 +498,9 @@ export default {
     },
     drawNormalPeLine() {
         console.debug("Draw Normal PE line. ratio=" + this.normalPeRatio)
-        var NormalPeDs = this.chart.data.datasets[3]
-        NormalPeDs.data = []
+        this.normalPeDs.data = []
         this.earnings.forEach((dp) => {
-            NormalPeDs.data.push(
+            this.normalPeDs.data.push(
                 {x: dp.x, y: dp.y * this.normalPeRatio}
             )
         })
@@ -503,10 +508,9 @@ export default {
     },
     drawCustomPeLine() {
         console.debug("Draw Custom PE line. ratio=" + this.customPeRatio)
-        var customPeDs = this.chart.data.datasets[2]
-        customPeDs.data = []
+        this.customPeDs.data = []
         this.earnings.forEach((dp) => {
-            customPeDs.data.push(
+            this.customPeDs.data.push(
                 {x: dp.x, y: dp.y * this.customPeRatio}
             )
         })
