@@ -38,8 +38,10 @@ export default {
     },
     methods: {
         change: function (selection_obj) {
-            var ticker = selection_obj.value
-            this.$router.push({ name: 'chart', params: { ticker: ticker } })
+            if (selection_obj) {
+              var ticker = selection_obj.value
+              this.$router.push({ name: 'chart', params: { ticker: ticker } })
+            }
         },
         asynch_search: function (term) {
             this.loading = true
