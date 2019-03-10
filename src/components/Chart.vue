@@ -313,7 +313,7 @@ export default {
     },
     update_historical_stock_earnings: function () {
         console.debug("API call to fetch stock earnings.")
-        this.addTask("update_earnings")
+        this.addTask("get_earnings")
         let apiName = 'StockAPI'
         let path = `/test/historical/stock/${this.ticker}`
         let myInit = {
@@ -327,9 +327,7 @@ export default {
         .then(response => {
             //console.debug('API call response:' + JSON.stringify(response))
             this.saveEarnings(response.data.results)
-            this.display_earning(response.data.results, 35)
-            //console.debug("Earnings data refreshed")
-            this.completeTask("update_earnings")
+            this.completeTask("get_earnings")
             })
         .catch(error => {console.debug('error' + error)})
     },
@@ -353,25 +351,6 @@ export default {
             this.completeTask("update_prices")
             })
         .catch(error => {console.debug('error' + error)})
-    },
-    display_earning: function (new_datapoints, multiple) {
-        var chart_earnings_ds = this.chart.data.datasets[1]
-        chart_earnings_ds.data=[]
-        new_datapoints.forEach((dp) => {
-            chart_earnings_ds.data.push(
-                {x: new Date(dp.dt), y: dp.e * multiple}
-            )
-            // Add FY earnings date to labels[] collection
-            // so that it is displayed on the X-axis
-            this.chart.data.labels.push(new Date(dp.dt))
-        })
-        var scales = this.chart.options.scales
-        var labels = this.chart.data.labels
-        scales.xAxes[0].time.min=labels[0]
-        scales.xAxes[1].time.min=labels[0]
-        scales.xAxes[0].time.max=labels[labels.length-1]
-        scales.xAxes[1].time.max=labels[labels.length-1]
-        this.chart.update()      
     },
     display_price: function(new_datapoints) {
         var chart_price_ds = this.chart.data.datasets[0]
@@ -474,12 +453,26 @@ export default {
     },
     saveEarnings(apiDatapoints) {
         this.earnings = []
+        this.chart.data.labels = []
         apiDatapoints.forEach((dp) => {
             this.earnings.push(
                 {x: new Date(dp.dt), y: dp.e}
             )
+            // Add FY earnings date to labels[] collection
+            // so that it is displayed on the X-axis
+            this.chart.data.labels.push(new Date(dp.dt))
         })
+        this.configXAxes()
         this.computeEarningsGrowth()
+    },
+    configXAxes() {
+        var scales = this.chart.options.scales
+        var labels = this.chart.data.labels
+        scales.xAxes[0].time.min=labels[0]
+        scales.xAxes[1].time.min=labels[0]
+        scales.xAxes[0].time.max=labels[labels.length-1]
+        scales.xAxes[1].time.max=labels[labels.length-1]
+        this.chart.update()
     },
     computeEarningsGrowth() {
         var startDp = this.earnings[0]
