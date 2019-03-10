@@ -6,18 +6,6 @@
                 <v-card dark>
                     <img v-if="anyPendingTask" id="loading-image" src="img/loading-spinner.gif" alt="Loading..." />
                     <canvas ref="canvas"></canvas>
-
-
-                    <v-layout align-start justify-center row>
-                        <v-flex xs2>
-                            <v-card class="pa-2" color="blue-grey" v-bind:class="{ chartBtnActive: isActiveCustomPe, chartBtnInactive: !isActiveCustomPe }">
-                                <div v-on:click="isActiveCustomPe=!isActiveCustomPe">Custom p/e ratio</div>
-                                <input type="number" style="width: 30px;" v-model.number="customPeRatio"/>
-                                <v-btn small v-on:click="drawCustomPeLine()">ok</v-btn>
-                            </v-card>
-                        </v-flex>
-                    </v-layout>
-
                 </v-card>
             </v-flex>
 
@@ -33,10 +21,34 @@
                         <li>-</li>
                         <li>Earnings growth: {{ (this.earningsGrowth * 100).toFixed(2) }}%</li>
                         <li>{{ this.GDFPeRatio.formula }} : {{ this.GDFPeRatio.ratio.toFixed(2) }}</li>
+                        <li>
+                            <v-card :color="customPeSwitch ? 'purple lighten-1' : 'grey darken-1'" min-width="200">
+                                <v-layout row>
+                                    <v-flex>
+                                        Custom p/e ratio
+                                    </v-flex>
+                                    <v-flex>
+                                        <v-switch v-model="customPeSwitch" color="purple"></v-switch>
+                                    </v-flex>
+                                </v-layout>
+
+                                <v-expansion-panel>
+                                    <v-expansion-panel-content hide-actions :value="customPeSwitch" :key="1"
+                                        :class="customPeSwitch ? 'purple lighten-1' : 'grey darken-1'">
+
+                                        <v-slider v-model="customPeRatio" :max="40" :min="0" thumb-label="always" :thumb-size="24"
+                                          :thumb-color="customPeSwitch ? 'purple' : 'grey'"
+                                          :color="customPeSwitch ? 'purple' : 'grey'"></v-slider>
+
+                                  </v-expansion-panel-content>
+                                </v-expansion-panel>
+                            </v-card>
+                        </li>
                         <li>Normal P/E: {{ this.normalPeRatio.toFixed(2) }}</li>
                         <li>-</li>
                         <li>MarketCap: {{ stockInfo.marketcap }}</li>
-			        </ul> 
+			        </ul>
+                    
                 </v-card>
             </v-flex>
             
@@ -113,8 +125,7 @@ export default {
            earnings: [], // stock earnings
            earningsGrowth: 0, // percentage annualized
            currentDate: new Date(Date.now()).toLocaleDateString(),
-           isActiveCustomPe: false,
-           customPeRatio: 20,
+           customPeRatio: 14,
            normalPeRatio: 0,
            stockInfo: {
                companyName: null,
@@ -124,7 +135,8 @@ export default {
                marketcap: null,
                lastPrice: null,
            },
-           tasks: []
+           tasks: [],
+           customPeSwitch: false
        }
   },
   watch: {
@@ -150,7 +162,15 @@ export default {
     normalPeRatio(to, from) {
         this.drawNormalPeLine()
     },
-    'isLoggedIn' (to, from) {
+    customPeRatio(to, from) {
+        this.drawCustomPeLine()
+    },
+    customPeSwitch(to, from) {
+        this.customPeDs.hidden = !this.customPeDs.hidden
+        if (to) { this.drawCustomPeLine() }
+        this.chart.update()
+    },
+    isLoggedIn(to, from) {
         console.debug('isLoggedIn watcher')
         /* setTimeout() allows the component to be mounted
             before the chart is drawn
@@ -172,11 +192,6 @@ export default {
                 this.get_stock_stats()
             }
         }, 0)
-    },
-    'isActiveCustomPe' (to, from) {
-        console.debug('isActiveCustomPe watcher, to=' + to)
-        this.chart.data.datasets[2].hidden = !to
-        this.chart.update()
     },
     anyPendingTask(to, from) {
         if (from && !to) { this.computeNormalPeRatio() }
@@ -233,7 +248,7 @@ export default {
             data: [],
             label: 'Custom P/E',
             xAxisID: 'PriceXAxis',
-            borderColor: 'red',
+            borderColor: '#9C27B0',
             lineTension: 0,
             pointRadius: 2,
             fill: false
