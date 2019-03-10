@@ -301,15 +301,10 @@ export default {
     },
     resetChart: function () {
         this.chart.data.labels=[]
-        // Remove all prices datapoints
-        var chart_price_ds = this.chart.data.datasets[0]
-        chart_price_ds.data=[]
-        // Remove custom PE datapoints
-        var chart_customPe_ds = this.chart.data.datasets[2]
-        chart_customPe_ds.data=[]
-        // Remove 15 PE datapoints
-        var chart_15Pe_ds = this.chart.data.datasets[1]
-        chart_15Pe_ds.data=[]
+        // Empty all datasets
+         this.chart.data.datasets.forEach((ds) => {
+            ds.data=[]
+        })
     },
     update_historical_stock_earnings: function () {
         console.debug("API call to fetch stock earnings.")
