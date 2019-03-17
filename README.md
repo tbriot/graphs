@@ -1,2 +1,2 @@
 # graphs
-Stock graphs 
+Stock graphs
